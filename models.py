@@ -8,7 +8,7 @@ from sklearn.inspection import permutation_importance
 def cross_val_pr_curve(model, X, y, cv=5):
     skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
     mean_precision, mean_recall = np.linspace(0, 1, 100), np.zeros(100)
-    _scores = []
+    auc_scores = []
     if isinstance(X, pd.DataFrame):
         X = X.to_numpy()
     for train_idx, val_idx in skf.split(X, y):
