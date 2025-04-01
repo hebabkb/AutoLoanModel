@@ -14,6 +14,12 @@ def preprocess_data(train_df, test_df):
 
     train_df.drop(columns=high_missing_columns_train, inplace=True)
     test_df.drop(columns=high_missing_columns_train, inplace=True)
+
+     # Dropping specified columns
+    columns_to_drop = ['Race', 'Gender', 'bad_flag']
+    train_df = train_df.drop(columns=columns_to_drop, errors='ignore')
+    test_df = test_df.drop(columns=columns_to_drop, errors='ignore')
+    
     # Identify categorical and numerical columns
     binary_categorical_cols = ['collateral_dlrinput_newused_1req']  # Binary categorical variables
     multi_categorical_cols = ['Gender','Race']  # Multi-class categorical variables
