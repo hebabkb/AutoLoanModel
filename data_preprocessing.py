@@ -9,7 +9,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from data_loading import load_data
 
 def cap_outliers(df, cols, percentile=0.99):
-    """Caps outliers in the given numeric columns at the specified percentile."""
+    #Caps outliers in the given numeric columns at the specified percentile.
     for col in cols:
         if df[col].dtype.kind in 'biufc':  # Ensure the column is numeric
             upper_limit = df[col].quantile(percentile)
@@ -17,27 +17,31 @@ def cap_outliers(df, cols, percentile=0.99):
     return df
 
 def preprocess_data(train_df, test_df):
-    """Preprocesses the data including handling missing values, outlier capping, and feature transformations."""
+    #Preprocesses the data including handling missing values, outlier capping, and feature transformations.
     missing_percent_train = ((train_df.isnull().sum() / len(train_df)) * 100).round(2)
     high_missing_columns_train = missing_percent_train[missing_percent_train > 80].index.tolist()
     train_df.drop(columns=high_missing_columns_train, inplace=True)
     test_df.drop(columns=high_missing_columns_train, inplace=True)
-    
+
+    # drop race and gender since they reduce fair lending and bad_flag since it might result in data leakage
     columns_to_drop = ['Race', 'Gender', 'bad_flag']
     train_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
     test_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
     
     binary_categorical_cols = ['collateral_dlrinput_newused_1req']
     numerical_cols = [col for col in train_df.columns if col not in binary_categorical_cols + ['aprv_flag']]
-    
+
+    # capping outliers
     train_df = cap_outliers(train_df, numerical_cols, percentile=0.99)
     test_df = cap_outliers(test_df, numerical_cols, percentile=0.99)
     
+    # transforms variables that are highly skewed 
     columns_to_apply_log = [col for col in numerical_cols if (train_df[col] > 0).all() and train_df[col].skew() > 1.5]
     for col in columns_to_apply_log:
         train_df[col] = np.log1p(train_df[col])
         test_df[col] = np.log1p(test_df[col])
-    
+        
+    # scaling and imputer 
     numeric_transformer = Pipeline([
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler', RobustScaler())
@@ -68,7 +72,7 @@ def preprocess_data(train_df, test_df):
     return X_train, y_train, X_test, y_test
 
 def remove_correlated_variables(X_train, X_test, vif_thresh=5, corr_thresh=0.7):
-    """Removes highly correlated and high-VIF variables."""
+    #Removes highly correlated and high-VIF variables.
     numerical_features = X_train.select_dtypes(include=[np.number]).columns.tolist()
     important_features = ['fico', 'amtfinanced_1req', 'ltv_1req', 'pti_1req']
     features_to_drop = []
