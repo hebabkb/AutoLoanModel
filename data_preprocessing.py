@@ -102,12 +102,12 @@ def preprocess_data(train_df, test_df):
     X_test = preprocessor.transform(X_test)
     
     feature_names = preprocessor.get_feature_names_out()
-    X_train = pd.DataFrame(X_train, columns=feature_names)
-    X_test = pd.DataFrame(X_test, columns=feature_names)
+    X_train = pd.DataFrame(X_train, columns=preprocessor.get_feature_names_out())
+    X_test = pd.DataFrame(X_test, columns=preprocessor.get_feature_names_out())
 
-    X_train, X_test = remove_correlated_variables(X_train, X_test)
+    X_train_reduced, X_test_reduced = remove_correlated_variables(X_train, X_test)
     
-    return X_train, y_train, X_test, y_test
+    return X_train_reduced, y_train, X_test_reduced, y_test
 
 
 if __name__ == "__main__":
