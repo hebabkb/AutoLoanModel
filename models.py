@@ -76,7 +76,7 @@ def feature_importance(model,X_data, y_data, metric):
     feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
     # Feature importance from Logistic Regression
-    feature_importance_df.plot(kind='bar', figsize=(10,5), title='Feature Importance')
+    ax = feature_importance_df.plot(kind='bar', figsize=(10,5), title='Feature Importance')
     ax.set_xlabel('Feature')  # Set label for X-axis
     ax.set_ylabel('Importance')  # Set label for Y-axis
     plt.show()
