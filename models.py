@@ -5,28 +5,38 @@ from sklearn.metrics import classification_report, confusion_matrix, precision_r
 from sklearn.model_selection import GridSearchCV, cross_val_score, cross_val_predict,StratifiedKFold
 from sklearn.inspection import permutation_importance
 
+
 def cross_val_pr_curve(model, X, y, cv=5):
     skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
-    mean_precision, mean_recall = np.linspace(0, 1, 100), np.zeros(100)
+    mean_recall = np.linspace(0, 1, 100)  # Fix recall as the reference axis
+    mean_precision_sum = np.zeros_like(mean_recall)  # Sum for averaging
     auc_scores = []
+
     if isinstance(X, pd.DataFrame):
         X = X.to_numpy()
+    if isinstance(y, pd.Series):
+        y = y.to_numpy()
+    
     for train_idx, val_idx in skf.split(X, y):
         X_train_fold, X_val_fold = X[train_idx], X[val_idx]
         y_train_fold, y_val_fold = y[train_idx], y[val_idx]
-        
+
         model.fit(X_train_fold, y_train_fold)
-        y_scores = model.predict_proba(X_val_fold)[:, 1]
+        y_scores = model.predict_proba(X_val_fold)[:, 1]  # Get probabilities
         precision, recall, _ = precision_recall_curve(y_val_fold, y_scores)
-        auc_score = auc(recall, precision)
+        auc_score = auc(recall, precision)  # Compute AUC
         auc_scores.append(auc_score)
-        
-        # Interpolating PR curve for averaging
-        mean_recall = np.interp(mean_precision, np.flip(recall), np.flip(precision))
-    
+
+        # Interpolate precision at fixed recall points
+        interpolated_precision = np.interp(mean_recall, np.flip(recall), np.flip(precision))
+        mean_precision_sum += interpolated_precision  # Sum precision values
+
+    # Compute the mean precision over folds
+    mean_precision = mean_precision_sum / cv
+
     # Plot mean PR curve
-    plt.plot(mean_precision, mean_recall, label=f"Mean PR Curve (AUC={np.mean(auc_scores):.2f})")
-    plt.xlabel("Recall")
+    plt.plot(mean_recall, mean_precision, label=f"Mean PR Curve (AUC={np.mean(auc_scores):.2f})", color='b')
+    plt.xlabel("Recall")  # Correct axis labels
     plt.ylabel("Precision")
     plt.title("Cross-Validated Precision-Recall Curve")
     plt.legend()
@@ -67,6 +77,8 @@ def feature_importance(model,X_data, y_data, metric):
 
     # Feature importance from Logistic Regression
     feature_importance_df.plot(kind='bar', figsize=(10,5), title='Feature Importance')
+    ax.set_xlabel('Feature')  # Set label for X-axis
+    ax.set_ylabel('Importance')  # Set label for Y-axis
     plt.show()
 
     
