@@ -60,7 +60,7 @@ def preprocess_data(train_df, test_df):
     test_df.drop(columns=high_missing_columns_train, inplace=True)
 
     # drop race and gender since they reduce fair lending and bad_flag since it might result in data leakage
-    columns_to_drop = ['Race', 'Gender', 'bad_flag']
+    columns_to_drop = ['Race', 'Gender']
     train_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
     test_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
     
