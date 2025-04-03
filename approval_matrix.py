@@ -30,7 +30,7 @@ def plot_approval_matrix(y_pred, bad_flag, model):
                 yticklabels=['Approved', 'Declined'],
                 ax=ax)
 
-    ax.set_title(f'Approval Decision Analysis (% by decision): {model_name}')
+    ax.set_title(f'Approval Decision Analysis (% by decision): {model}')
     ax.set_xlabel('Actual Loan Performance')
     ax.set_ylabel('Model Decision')
 
