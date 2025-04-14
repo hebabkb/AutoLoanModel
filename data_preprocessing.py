@@ -59,11 +59,14 @@ def preprocess_data(train_df, test_df):
     train_df.drop(columns=high_missing_columns_train, inplace=True)
     test_df.drop(columns=high_missing_columns_train, inplace=True)
 
-    # drop race and gender since they reduce fair lending and bad_flag since it might result in data leakage
+    # Drop race and gender for fairness, keep bad_flag for post-evaluation
     columns_to_drop = ['Race', 'Gender']
-    train_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
-    test_df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
-    
+    bad_flag_train = train_df['bad_flag'].copy()
+    bad_flag_test = test_df['bad_flag'].copy()
+
+    train_df.drop(columns=columns_to_drop + ['bad_flag'], errors='ignore', inplace=True)
+    test_df.drop(columns=columns_to_drop + ['bad_flag'], errors='ignore', inplace=True)
+
     binary_categorical_cols = ['collateral_dlrinput_newused_1req']
     numerical_cols = [col for col in train_df.columns if col not in binary_categorical_cols + ['aprv_flag']]
 
@@ -107,7 +110,7 @@ def preprocess_data(train_df, test_df):
 
     X_train_reduced, X_test_reduced = remove_correlated_variables(X_train, X_test)
     
-    return X_train_reduced, y_train, X_test_reduced, y_test
+    return X_train, y_train, X_test, y_test, bad_flag_train.reset_index(drop=True), bad_flag_test.reset_index(drop=True)
 
 
 if __name__ == "__main__":
